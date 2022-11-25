@@ -1,6 +1,7 @@
 import browser from "browser-sync";
 import getData from "gulp-data";
 import gulp from "gulp";
+import posthtml from "gulp-posthtml";
 import twig from "gulp-twig";
 
 const buildHtml = () =>
@@ -18,6 +19,7 @@ const buildHtml = () =>
       })
     )
     .pipe(twig())
+    .pipe(posthtml())
     .pipe(gulp.dest("source"));
 
 const reload = (done) => {
