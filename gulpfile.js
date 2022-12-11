@@ -1,11 +1,17 @@
+import gulp from "gulp";
+import plumber from "gulp-plumber";
+import less from "gulp-less";
+import postcss from "gulp-postcss";
+import autoprefixer from "autoprefixer";
 import browser from "browser-sync";
 import getData from "gulp-data";
-import gulp from "gulp";
 import posthtml from "gulp-posthtml";
 import twig from "gulp-twig";
 
-const buildHtml = () =>
-  gulp
+// HTML
+
+const buildHtml = () => {
+  return gulp
     .src("source/layouts/pages/**/*.twig")
     .pipe(
       getData(({ path }) => {
@@ -21,11 +27,21 @@ const buildHtml = () =>
     .pipe(twig())
     .pipe(posthtml())
     .pipe(gulp.dest("source"));
-
-const reload = (done) => {
-  browser.reload();
-  done();
 };
+
+// Styles
+
+const styles = () => {
+  return gulp
+    .src("source/less/style.less", { sourcemaps: true })
+    .pipe(plumber())
+    .pipe(less())
+    .pipe(postcss([autoprefixer()]))
+    .pipe(gulp.dest("source/css", { sourcemaps: "." }))
+    .pipe(browser.stream());
+};
+
+// Server
 
 const server = (done) => {
   browser.init({
@@ -39,8 +55,14 @@ const server = (done) => {
   done();
 };
 
+// Watcher
+
 const watcher = () => {
-  gulp.watch("source/layouts/**/*.twig", gulp.series(buildHtml, reload));
+  gulp.watch("source/less/**/*.less", gulp.series(styles));
+  gulp.watch("source/*.html").on("change", browser.reload);
+  gulp.watch("source/layouts/**/*.twig", buildHtml);
 };
 
-export default gulp.series(buildHtml, server, watcher);
+export const build = gulp.parallel(buildHtml, styles);
+
+export default gulp.series(build, server, watcher);
