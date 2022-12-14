@@ -7,10 +7,16 @@ import browser from "browser-sync";
 import getData from "gulp-data";
 import posthtml from "gulp-posthtml";
 import twig from "gulp-twig";
+import lintspaces from "gulp-lintspaces";
+import stylint from "stylelint";
+import postcssReporter from "postcss-reporter";
+import lessSyntax from "postcss-less";
+
+const EDITORCONFIG_CHECKS = ["*.{js,json}", "source/**/*.{twig,js,less,svg}"];
 
 // HTML
 
-const buildHtml = () => {
+const compileHtml = () => {
   return gulp
     .src("source/layouts/pages/**/*.twig")
     .pipe(
@@ -25,8 +31,11 @@ const buildHtml = () => {
       })
     )
     .pipe(twig())
-    .pipe(posthtml())
-    .pipe(gulp.dest("source"));
+    .pipe(posthtml());
+};
+
+const buildHtml = () => {
+  return compileHtml().pipe(gulp.dest("source"));
 };
 
 // Styles
@@ -39,6 +48,32 @@ const styles = () => {
     .pipe(postcss([autoprefixer()]))
     .pipe(gulp.dest("source/css", { sourcemaps: "." }))
     .pipe(browser.stream());
+};
+
+// Lint styles
+
+const lintStyles = () => {
+  return gulp.src("source/less/**/*.less").pipe(
+    postcss(
+      [
+        stylint(),
+        postcssReporter({
+          clearAllMessages: true,
+          throwError: false,
+        }),
+      ],
+      { syntax: lessSyntax }
+    )
+  );
+};
+
+// Lint editorconfig
+
+const lintEditorconfig = () => {
+  return gulp
+    .src(EDITORCONFIG_CHECKS)
+    .pipe(lintspaces({ editorconfig: ".editorconfig" }))
+    .pipe(lintspaces.reporter({ breakOnWarning: false }));
 };
 
 // Server
@@ -58,11 +93,14 @@ const server = (done) => {
 // Watcher
 
 const watcher = () => {
-  gulp.watch("source/less/**/*.less", gulp.series(styles));
+  gulp.watch(EDITORCONFIG_CHECKS, lintEditorconfig);
+  gulp.watch("source/less/**/*.less", gulp.parallel(styles, lintStyles));
   gulp.watch("source/*.html").on("change", browser.reload);
   gulp.watch("source/layouts/**/*.twig", buildHtml);
 };
 
-export const build = gulp.parallel(buildHtml, styles);
+export const lint = gulp.parallel(compileHtml, lintEditorconfig, lintStyles);
+
+export const build = gulp.parallel(buildHtml, styles, lint);
 
 export default gulp.series(build, server, watcher);
