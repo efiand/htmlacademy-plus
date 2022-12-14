@@ -12,6 +12,7 @@ import stylint from "stylelint";
 import postcssReporter from "postcss-reporter";
 import lessSyntax from "postcss-less";
 
+const devMode = process.env.NODE_ENV === "development";
 const EDITORCONFIG_CHECKS = ["*.{js,json}", "source/**/*.{twig,js,less,svg}"];
 
 // HTML
@@ -26,6 +27,7 @@ const compileHtml = () => {
           .replace(/\\/g, "/");
 
         return {
+          devMode,
           page,
         };
       })
@@ -42,7 +44,7 @@ const buildHtml = () => {
 
 const styles = () => {
   return gulp
-    .src("source/less/style.less", { sourcemaps: true })
+    .src("source/less/style.less", { sourcemaps: devMode })
     .pipe(plumber())
     .pipe(less())
     .pipe(postcss([autoprefixer()]))
@@ -59,7 +61,7 @@ const lintStyles = () => {
         stylint(),
         postcssReporter({
           clearAllMessages: true,
-          throwError: false,
+          throwError: !devMode,
         }),
       ],
       { syntax: lessSyntax }
@@ -73,7 +75,7 @@ const lintEditorconfig = () => {
   return gulp
     .src(EDITORCONFIG_CHECKS)
     .pipe(lintspaces({ editorconfig: ".editorconfig" }))
-    .pipe(lintspaces.reporter({ breakOnWarning: false }));
+    .pipe(lintspaces.reporter({ breakOnWarning: !devMode }));
 };
 
 // Server

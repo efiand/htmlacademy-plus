@@ -26,11 +26,13 @@
 
 		<footer></footer>
 
-		<script>
-			window.pixelperfect = {
-				breakpoints: [320, 768, 1150]
-			};
-		</script>
-		<script src="https://efiand.github.io/pixelperfect-tool/pixelperfect.min.js"></script>
+		{% if devMode %}
+			<script>
+				window.pixelperfect = {
+					breakpoints: [320, 768, 1150]
+				};
+			</script>
+			<script src="https://efiand.github.io/pixelperfect-tool/pixelperfect.min.js"></script>
+		{% endif %}
 	</body>
 </html>
