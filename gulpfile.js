@@ -105,6 +105,6 @@ const watcher = () => {
 
 export const lint = gulp.parallel(compileHtml, lintEditorconfig, lintStyles);
 
-export const build = gulp.parallel(buildHtml, styles, lint);
+export const build = gulp.parallel(buildHtml, styles, lintEditorconfig, lintStyles);
 
 export default gulp.series(build, server, watcher);
