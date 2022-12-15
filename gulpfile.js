@@ -11,6 +11,7 @@ import lintspaces from "gulp-lintspaces";
 import stylint from "stylelint";
 import postcssReporter from "postcss-reporter";
 import lessSyntax from "postcss-less";
+import include from "gulp-include";
 
 const devMode = process.env.NODE_ENV === "development";
 const EDITORCONFIG_CHECKS = ["*.{js,json}", "source/**/*.{twig,js,less,svg}"];
@@ -46,6 +47,7 @@ const styles = () => {
   return gulp
     .src("source/less/style.less", { sourcemaps: devMode })
     .pipe(plumber())
+    .pipe(include())
     .pipe(less())
     .pipe(postcss([autoprefixer()]))
     .pipe(gulp.dest("source/css", { sourcemaps: "." }))
